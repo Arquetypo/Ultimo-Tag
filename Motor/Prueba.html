@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+      <html>
+      <head>
+       <title> WebGL Beginner's Guide - Setting up the canvas </title>
+       <style type="text/css">
+       canvas {border: 2px dotted blue;}
+       </style>
+       <script type='text/javascript' src="main.js"></script>
+       <script type='text/javascript' src="GestorRecursos.js"></script>
+       <script type='text/javascript' src="arbol/material.js"></script>
+       <script type='text/javascript' src="Recurso.js"></script>
+       <script type='text/javascript' src="RecursoMalla.js"></script>
+       <script type='text/javascript' src="RecursoTextura.js"></script>
+       <script type='text/javascript' src='arbol/Camara.js'></script>
+       <script type='text/javascript' src='arbol/Entidad.js'></script>
+       <script type='text/javascript' src='arbol/Luz.js'></script>
+       <script type='text/javascript' src='arbol/Malla.js'></script>
+       <script type='text/javascript' src='arbol/Nodo.js'></script>
+       <script type='text/javascript' src='arbol/Transformacion.js'></script>
+       <script type='text/javascript' src='js/math/gl-matrix-min.js'></script>
+       <script type='text/javascript' src='js/webgl/Globals.js'></script>
+       <script type='text/javascript' src='js/webgl/Utils.js'></script>
+       <script type='text/javascript' src='js/webgl/Program.js'></script>
+       <script type='text/javascript' src='js/webgl/WebGLApp.js'></script>
+       <script type='text/javascript' src='cargaObj.js'></script>
+       <script type='text/javascript' src='fachada/Motor.js'></script>
+
+      <script id="shader-vs" type="x-shader/x-vertex">
+
+
+
+
+
+        // Constante de numero de luces
+
+        //const int NUM_LIGHTS = 3;
+
+        // Aqui los attributes
+
+        attribute vec3 aVertexPosition; //HASTA AQUI FUNCIONA
+        attribute vec3 aVertexNormal; // Para las normales
+        attribute vec2 aVertexTexture;
+      
+        //attribute vec2 aTextureCoord; // Para las texturas, dos componentes u v (Acuerdate que es TextureCoord asecas)
+
+        // Aqui los uniforms
+
+        // Matrices de proyeccion
+
+        uniform mat4 uMVMatrix; // Model View Matrix
+        uniform mat4 uPMatrix; // Projection Matrix
+        uniform mat4 uNMatrix; // Normal Matrix
+        uniform mat4 uMatrixCamara; // Movimiento de la camara
+        
+
+        uniform float Ka;   // Ambient reflection coefficient
+        uniform float Kd;   // Diffuse reflection coefficient
+        uniform float Ks;   // Specular reflection coefficient
+        uniform float shininessVal; // Shininess
+
+  
+
+        // Aqui los varyings
+
+        varying vec3 vNormal; // Interpolacion de normales
+        varying vec3 vPosition; 
+        varying highp vec2 vVertexTexture;
+
+
+
+        /*
+        uniform bool uUseVertexColor;
+        uniform vec4 uMaterialDiffuse;
+        uniform vec4 uMaterialAmbient;
+        */
+
+        void main(void) {
+       
+        //gl_Position = vec4(aVertexPosition,1.0); // HASTA AQUI FUNCIONA
+
+
+        vec4 vertPos4 = uMatrixCamara * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vPosition = vec3(vertPos4) / vertPos4.w;
+        vNormal = vec3(uNMatrix * vec4(aVertexNormal, 0.0));
+        gl_Position = uPMatrix * vertPos4;
+        vVertexTexture = aVertexTexture;
+
+        }
+
+      </script>
+
+      <script id="shader-fs" type="x-shader/x-fragment">
+        
+        // Esta es la cabecera, siempre se pone
+
+        #ifdef GL_ES
+        precision highp float;
+        #endif
+
+        //int NUM_LIGHTS = 3;
+        varying vec3 vNormal; // Interpolacion de normales
+        varying vec3 vPosition;
+        varying highp vec2 vVertexTexture;
+        uniform sampler2D uSampler;
+
+        uniform float Ka;   // Ambient reflection coefficient
+        uniform float Kd;   // Diffuse reflection coefficient
+        uniform float Ks;   // Specular reflection coefficient
+        uniform float shininessVal; // Shininess
+        uniform float roughness; // Shininess
+        uniform float albedo; // Shininess
+
+        uniform vec3 ambientColor;
+        uniform vec3 diffuseColor;
+        uniform vec3 specularColor;
+        uniform vec3 lightPos; // Light position
+        
+
+        uniform vec3 uLightAmbient[5];
+        uniform vec3 uLightDifuse[5];
+        uniform vec3 uLightSpecular[5];
+        uniform vec3 uLightPos[5];
+
+        // uniform int size
+
+        // Para las sombras
+
+        uniform samplerCube lightShadowMap;
+        uniform float bias;
+
+    
+
+
+
+
+
+    void main(void) {
+        //gl_FragColor = vec4(0.5,0.5,1.0, 1.0); //Solo color //HASTA AQUI FUNCIONA
+
+    vec4 fragmentColor = texture2D(uSampler, vec2(vVertexTexture.s, vVertexTexture.t));
+    vec4 finalColor = vec4(0.0, 0.0, 0.0, 0.0);
+
+    vec2 shadowClipNearFar = vec2(0.05, 15.0);
+
+
+
+    
+
+
+        for(int i =0; i < 5; i++){
+
+          vec3 N = normalize(vNormal);
+          vec3 L = normalize(uLightPos[i] - vPosition);
+
+        float lambertian = max(dot(N, L), 0.0);
+        float specular = 0.0;
+          
+          if(lambertian > 0.0) {
+            vec3 R = reflect(-L, N);      // Reflected light vector
+            vec3 V = normalize(-vPosition); // Vector to viewer
+            // Compute the specular term
+            float specAngle = max(dot(R, V), 0.0);
+            specular = pow(specAngle, shininessVal);
+          }
+
+        // 1 formula de Atenuacion
+
+        float distance = length(uLightPos[i] - vPosition);
+        float attenuation1 = 1.0 / (1.0 + 0.22 * distance * 0.2 * (distance * distance));
+
+        // 2 formula de atenuacion
+
+        float radius = 20.0;
+        float fallof = 0.45;
+
+        float denom = distance / radius + 1.0;
+        float attenuation = 1.0 / (denom*denom);
+        float t = (attenuation - fallof) / (1.0 - fallof);
+        float finalAttenuation= max(t, 0.0);
+
+        // Calculos de sombras // SE HA INTENTADO PERO NO SE HA CONSEGUIDO
+
+
+
+        // Tenemos L (tolightNormal)
+
+        float fromLightToFrag = (length(vPosition - uLightPos[i]) - shadowClipNearFar.x) / (shadowClipNearFar.y - shadowClipNearFar.x);
+
+        //float shadowMapValue = textureCube(lightShadowMap, -L).r;
+
+        float sombra = 0.6;
+        
+        // if ((shadowMapValue + 0.0001) >= fromLightToFrag) {
+        //   sombra += 0.4 * max(dot(N, L), 0.0); // La normal es o vNormal o N, probar con ambas (supongo que sera lambertian)
+        // }
+
+
+
+        // Formula Rugosidad
+         // float roughness = 100.0;
+         // float sigma2 = roughness*roughness;
+         // float A = 1.0-0.5*sigma2/(sigma2+0.33);
+         // float B =0.45 * sigma2/(sigma2+0.09);
+
+         // float roughness = _Roughness;
+         
+         // float VdotN = dot(viewDir,s.Normal);
+         // float LdotN = dot(lightDir,s.Normal);
+         // float cos_theta_i=LdotN;
+         // float theta_r = acos(VdotN);
+         // float theta_i = acos(cos_theta_i);
+         // float cos_phi_diff = dot(normalize(viewDir-s.Normal*VdotN),normalize(lightDir-s.Normal*LdotN));
+         // float alpha = max(theta_i,theta_r);
+         // float beta = min(theta_i,theta_r);
+         // float sigma2 = roughness*roughness;
+         // float A = 1.0-0.5*sigma2/(sigma2+0.33);
+         // float B =0.45 * sigma2/(sigma2+0.09);
+         
+         // if(cos_phi_diff>=0)
+         // B*=sin(alpha)*tan(beta);
+         // else
+         // B*=0;
+         
+         // float4 col;
+         
+         // col.rgb =s.Albedo * _LightColor0.rgb*(cos_theta_i*(A+B)*atten);
+         
+         
+
+
+
+          //gl_FragColor = texture2D(uSampler, vec2(vVertexTexture.s, vVertexTexture.t));
+          //gl_FragColor =  vec4(Kd * lambertian * difTotal, 1.0);
+    
+          //gl_FragColor =  texture2D(uSampler, vec2(vVertexTexture.s, vVertexTexture.t)) * vec4(Ka * ambientColor +
+                      //Kd * lambertian * diffuseColor +
+                     //Ks * specular * specularColor, 1.0);
+                     //let ambiente=  uLightAmbient[i] * ambientColor;
+
+                    //gl_FragColor += vec4(Ka * uLightAmbient[i], 1.0);
+                    //gl_FragColor += vec4(Kd * lambertian * uLightDifuse[i], 1.0);
+
+                    //vec3 diffuse = Kd * diffuseColor * uLightDifuse[i] * computeDiffuse(L, V, N, roughness, albedo) * finalAttenuation;
+
+
+                     //gl_FragColor += vec4(finalAttenuation*(Ka * uLightAmbient[i]+ Kd * lambertian *  uLightDifuse[i] /** fragmentColor.rgb*/ + Ks *  specular * uLightSpecular[i]),1.0);
+
+
+                     //gl_FragColor += vec4(diffuseColor * lambertian * uLightDifuse[i],1.0);
+
+                     // gl_FragColor += vec4(specularColor *  specular * uLightSpecular[i],1.0);
+
+
+
+                      gl_FragColor += /*texture2D(uSampler, vec2(vVertexTexture.s, vVertexTexture.t))**/ vec4(finalAttenuation*((ambientColor*Ka) * uLightAmbient[i]+ (diffuseColor*Kd) * lambertian * uLightDifuse[i] * fragmentColor.rgb + specularColor *  (specular*Ks) * uLightSpecular[i]),1.0);
+
+                     //gl_FragColor += vec4(Ka * uLightAmbient[i] + Kd * lambertian * uLightDifuse[i] + Ks * specular * uLightSpecular[i], 1.0);
+
+        }
+
+        //gl_FragColor += vec4(ambientColor*Ka+diffuseColor*Kd+specularColor*Ks,1.0);
+        //gl_FragColor = vec4(diffuseColor,1.0);
+
+
+
+
+
+
+
+       ////// SHADER ANTIGUO ////
+
+        /*vec3 N = normalize(vNormal);
+        vec3 L = normalize(lightPos - vPosition);
+
+        float lambertian = max(dot(N, L), 0.0);
+        float specular = 0.0;
+          
+          if(lambertian > 0.0) {
+            vec3 R = reflect(-L, N);      // Reflected light vector
+            vec3 V = normalize(-vPosition); // Vector to viewer
+            // Compute the specular term
+            float specAngle = max(dot(R, V), 0.0);
+            specular = pow(specAngle, shininessVal);
+          }
+          //gl_FragColor = texture2D(uSampler, vec2(vVertexTexture.s, vVertexTexture.t));
+          gl_FragColor =  vec4(Kd * lambertian * difTotal, 1.0);
+    
+          //gl_FragColor = /* texture2D(uSampler, vec2(vVertexTexture.s, vVertexTexture.t)) *  vec4(Ka * ambientColor +
+                      //Kd * lambertian * diffuseColor +
+                     //Ks * specular * specularColor, 1.0);*/
+
+
+          //////////
+       
+
+   
+    }
+      
+    </script>
+
+
+
+
+    </head>
+    <body onload="Inicio();">
+    <!-- <canvas style="border: none !important;" id="canvas-element-id" width="650" height="400"> -->
+    <canvas style="border:none;" id="canvas-element-id" width="1050" height="200">
+    Your browser does not support HTML5
+    </canvas>
+    <img style="display:none;" id="holi" src="textura.jpg"/>
+    </body>
+    </html>

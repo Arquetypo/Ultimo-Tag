@@ -1,0 +1,415 @@
+<html>
+
+<head>
+<title>Adivina que objeto es</title>
+<meta http-equiv='content-type' content='text/html; charset=ISO-8859-1'>
+
+<!-- CSS Styles //-->
+<!-- GUI Libraries //-->
+<script type='text/javascript' src='js/gui/jquery-1.5.1.min.js'></script>
+<script type='text/javascript' src='js/gui/jquery-ui-1.8.13.custom.min.js'></script> 
+<script type='text/javascript' src='js/gui/colorpicker.js'></script>
+<script type='text/javascript' src='js/gui/prettify.js'></script>
+<script type='text/javascript' src='js/gui/codeview.js'></script>
+<!-- MATH Libraries //-->
+<script type='text/javascript' src='js/math/gl-matrix-min.js'></script>
+<!-- WEBGL Libraries //-->
+<script type='text/javascript' src='js/webgl/Globals.js'></script>
+<script type='text/javascript' src='js/webgl/Utils.js'></script>
+<script type='text/javascript' src='js/webgl/Program.js'></script>
+<script type='text/javascript' src='js/webgl/WebGLApp.js'></script>
+<script type='text/javascript' src='cargaObj.js'></script>
+<script src="Arbol/camara.js"></script>
+<script src="Arbol/entidad.js"></script>
+<script src="Arbol/luz.js"></script>
+<script src="Arbol/transform.js"></script>
+<script src="Arbol/malla.js"></script>
+<script src="Arbol/nodo.js"></script>
+<script src="Gestor/gestor.js"></script>
+<script src="Gestor/MallaGestor.js"></script>
+<script src="Gestor/recurso.js"></script>
+<script src="Gestor/textura.js"></script>
+
+<script src="Gestor/animacion.js"></script>
+<script src="Fachada/Motor.js"></script>
+<script src="Fachada/main.js"></script>
+<script src="Fachada/interaccion_camara.js"></script>
+
+<script> var motor= new Motor(); </script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+
+attribute vec3 aVertexPosition;
+attribute vec3 aVertexNormal;
+attribute vec4 aVertexColor;
+
+//Incluimos un vector de dos elementos para las coordenadas de texturas
+attribute vec2 aTextureCoord;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+uniform mat4 uNMatrix;
+uniform float uAlpha;
+
+const int NUM_LIGHTS = 4;
+
+uniform vec4 uMaterialDiffuse;
+uniform vec3 uLightPosition[NUM_LIGHTS];
+
+//varyings
+varying vec4 vColor;
+varying vec2 vTextureCoord;
+
+
+varying vec3 vNormal;
+varying vec3 vLightRay[NUM_LIGHTS];
+
+void main(void) {
+ 
+ //Transformed vertex position
+ vec4 vertex = uMVMatrix * vec4(aVertexPosition, 1.0);
+
+ vTextureCoord = aTextureCoord;
+
+ //Transformed normal position
+ vNormal = vec3(uNMatrix * vec4(aVertexNormal, 1.0));
+ 
+ //Calculate light ray per each light
+ for(int i=0; i < NUM_LIGHTS; i++){
+    vec4 lightPosition = uMVMatrix * vec4(uLightPosition[i], 1.0);
+    vLightRay[i] = vertex.xyz - lightPosition.xyz;
+ }
+ 
+ 
+ //Final vertex position
+ gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+
+}   
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+#ifdef GL_ES
+precision highp float;
+#endif
+
+//object uniforms
+uniform bool uWireframe;
+uniform vec4 uMaterialAmbient;
+uniform vec4 uMaterialDiffuse;
+//Incluimos un uniform que asociara la textura a un uniform
+uniform sampler2D uSampler;
+
+//light uniforms
+const int NUM_LIGHTS = 4;
+uniform bool uLightSource;
+uniform vec4 uLightAmbient;
+uniform vec4 uLightDiffuse[NUM_LIGHTS];
+uniform float uCutOff;   
+
+//varyings
+varying vec2 vTextureCoord;
+varying vec3 vNormal;
+varying vec3 vLightRay[NUM_LIGHTS];
+
+void main(void)
+{
+    if(uWireframe || uLightSource){
+        gl_FragColor = uMaterialDiffuse;
+    }
+    else{
+        vec4 Ia = uLightAmbient * uMaterialAmbient; //Ambient component: one for all
+        vec4 finalColor = vec4(0.0,0.0,0.0,1.0);    //Color that will be assigned to gl_FragColor
+                                
+        vec3 N = normalize(vNormal);
+        vec3 L = vec3(0.0);
+        float lambertTerm = 0.0;
+        
+        for(int i = 0; i < NUM_LIGHTS; i++){                    //For each light
+            
+            L = normalize(vLightRay[i]);            //Calculate reflexion
+            lambertTerm = dot(N, -L);
+            
+            if (lambertTerm > uCutOff){         
+                finalColor += uLightDiffuse[i] * uMaterialDiffuse *lambertTerm; //Add diffuse component, one per light
+            }
+        }
+    
+        //Final color
+        finalColor  += Ia;
+        finalColor.a = 1.0;             //Add ambient component: one for all                    
+        gl_FragColor = finalColor  * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));     //The alpha value in this example will be 1.0
+  }
+
+}
+</script>
+
+<script id='code-js' type="text/javascript">
+
+
+function updateTransforms(){
+    mat4.perspective(30, c_width / c_height, 0.1, 1000.0, pMatrix);  // We can resize the screen at any point so the perspective matrix should be updated always.
+}
+
+
+/**
+* Maps the matrices to shader matrix uniforms
+*
+* Called once per rendering cycle. 
+*/
+function setMatrixUniforms(){
+     gl.uniformMatrix4fv(prg.uPMatrix, false, pMatrix);    //Maps the Perspective matrix to the uniform prg.uPMatrix
+     gl.uniformMatrix4fv(prg.uMVMatrix, false, mvMatrix);  //Maps the Model-View matrix to the uniform prg.uMVMatrix
+     mat4.transpose(cMatrix, nMatrix);                     //Calculates the Normal matrix 
+     gl.uniformMatrix4fv(prg.uNMatrix, false, nMatrix);    //Maps the Normal matrix to the uniform prg.uNMatrix
+}
+
+
+/**
+* Entry point. This function is invoked when the page is loaded
+*/
+function runWebGLApp() {
+    app = new WebGLApp("canvas-element-id");
+    motor.crearEscena();
+    //var nodo1=motor.crearRotacion(1,5,2,5); //rotacion camara
+    var nodo1=motor.crearRotacion(1,5,2,5); //rotacion camara
+    var nodo2=motor.crearRotacion(10,0,0,0);
+    var nodo3=motor.crearTranslacion(0,0,300); //translacion camara
+    var nodo4=motor.crearTranslacion(800,0,0);
+    motor.agregaNodo(motor.escena, nodo1);
+    motor.agregaNodo(motor.escena, nodo2);
+    var camara=motor.crearCamara();
+    motor.agregaCam(camara);
+    motor.setCamActiva(0);
+
+    var interactor = new CameraInteractor(nodo1, document.getElementById('canvas-element-id'));;
+
+    // console.log("Voy a crear una malla");
+
+/*    var anim = new Animacion();
+*/
+    var tex1 = new Textura();
+    tex1.setImagen("baldios.jpg");
+    console.log(tex1);
+
+/*
+    for(i=1; i<30 ; i++){
+        if(i<10) anim.pushMalla('models/anim/anim_00000'+i +'.obj');
+        else if(i<100) anim.pushMalla('models/anim/anim_0000'+i +'.obj');
+        else anim.pushMalla('models/anim/anim_000'+i +'.obj');
+    }*/
+
+
+    //luces
+    var luz1=motor.crearLuz();
+    var luz2=motor.crearLuz();
+    var luz3=motor.crearLuz();
+
+
+    luz1.getEntidad().setPosicion([20.0, 100.0, 100.0]);
+    luz1.getEntidad().setDifusa([1.0, 0.0, 0.0, 0.0]);
+
+    luz2.getEntidad().setPosicion([20.0, 10.0, 5.0]);
+    luz2.getEntidad().setDifusa([0.0, 0.3, 0.0, 0.0]);
+
+    luz3.getEntidad().setPosicion([-20.0, 15.0, 50.0]);
+    luz3.getEntidad().setDifusa([0.0, 0.0, 0.3, 0.0]);
+
+
+
+    motor.agregaLuz(luz1);
+    motor.agregaLuz(luz2);
+    motor.agregaLuz(luz3);
+
+    motor.setLuzActiva(0);
+    var malla2=motor.crearMalla("mac.obj");
+    var malla=motor.crearMalla("chess.obj");
+    // console.log("Ya la he creado");
+    motor.agregaNodo(nodo1,nodo3);
+    motor.agregaNodo(nodo2,nodo4);
+
+    malla2.getEntidad().getMalla().setTextura(tex1);
+
+    motor.agregaNodo(nodo3,camara);
+    motor.agregaNodo(nodo4,malla2);
+    //motor.agregaNodo(nodo4,anim);
+    //motor.agregaNodo(nodo4,luz1);
+    
+    motor.draw();
+}
+</script>
+</head>
+
+<body onLoad='runWebGLApp()'>
+<div id='top'>
+</div>
+
+<div id='contents'>
+<div id='canvasContainer'>
+<canvas id='canvas-element-id' width='480' height='400'>
+Your browser does not support the HTML5 canvas element.
+</canvas>
+</div>
+</div>
+
+<div id='bottom' >
+<table>
+<tr>
+    <td style='vertical-align:top'> 
+    <table style='padding=8px'>
+    <tr>
+        <td>
+            <table style='padding=4px'>
+            <tr><td colspan='4' style='text-align:center'><b>Position</b></td></tr>
+            <tr>
+                <td>X:</td><td id='slider-position-x-value'>0.0</td><td>units</td><td width='150px'><div id='slider-position-x'/></td>
+            </tr>
+            <tr>
+                <td>Y:</td><td id='slider-position-y-value'>-2.0</td><td style='text-align:center'>units</td><td width='150px'><div id='slider-position-y'/></td>
+            </tr>
+            <tr>
+                <td>Z:</td> <td id='slider-position-z-value'>-50.0</td><td align='center'>units</td><td width='150px'><div id='slider-position-z'/></td>
+            </tr>
+            
+            <tr>
+                <td colspan='3'/>
+                <td align='center'>
+                    <div id='opt-coords'>
+                        <input type='radio' id='opt-world' name='coords' checked='checked'/><label for='opt-world'>World</label>
+                        <input type='radio' id='opt-camera' name='coords'/><label for='opt-camera'>Camera</label>
+                    </div>
+                </td>
+            </tr>
+            </table>
+        </td>
+        <td>    
+            <table style='padding=4px'>
+            <tr><td colspan='4' style='text-align:center'><b>Rotation</b></td></tr>
+            <tr>
+                <td>X:</td><td id='slider-angle-x-value'>0.0</td><td>degrees</td><td width='150px'><div id='slider-angle-x'/></td>
+            </tr>
+            <tr>
+                <td>Y:</td><td id='slider-angle-y-value'>0.0</td><td style='text-align:center'>degrees</td><td width='150px'><div id='slider-angle-y'/></td>
+            </tr>
+            <tr>
+                <td>Z:</td> <td id='slider-angle-z-value'>0.0</td><td align='center'>degrees</td><td width='150px'><div id='slider-angle-z'/></td>
+            </tr>
+            <tr>
+                <td colspan='3'/>
+                <td align ='center'>
+                    <input type="checkbox" id="chkUpdateLight" /><label for="chkUpdateLight">Update Light Position</label>
+                </td>
+            </tr>
+            </table>
+         </td>
+    </tr>     
+    </table>
+    </td>
+    <td align='center' style='vertical-align:top'>
+        <table id='tbl-matrix'>
+        <tr><td id='m0' style='font-weight:bold'></td><td id='m4' style='font-weight:bold'></td><td id='m8' style='font-weight:bold'></td><td id='m12'></td></tr>
+        <tr><td id='m1' style='font-weight:bold'></td><td id='m5' style='font-weight:bold'></td><td id='m9' style='font-weight:bold'></td><td id='m13'></td></tr>
+        <tr><td id='m2' style='font-weight:bold'></td><td id='m6' style='font-weight:bold'></td><td id='m10' style='font-weight:bold'></td><td id='m14'></td></tr>
+        <tr><td id='m3'></td><td id='m7'></td><td id='m11'></td><td id='m15'></td></tr>
+        </table>
+    </td>
+</tr>
+</table>
+</div>
+<script> 
+
+$('#slider-position-x').slider({value:0.0, min:-50.0, max:50.0, step:0.5, slide:function(){updatePosition('#slider-position-x');}});
+$('#slider-position-y').slider({value:-2.0, min:-50.0, max:50.0, step:0.5, slide:function(){updatePosition('#slider-position-y');}});
+$('#slider-position-z').slider({value:-30.0, min:-50.0, max:50.0, step:0.5, slide:function(){updatePosition('#slider-position-z');}});
+
+$('#slider-angle-x').slider({value:0.0, min:-180.0, max:180, step:1, slide:function(){updateAngle('#slider-angle-x');}});
+$('#slider-angle-y').slider({value:0.0, min:-180.0, max:180.0, step:1, slide:function(){updateAngle('#slider-angle-y');}});
+$('#slider-angle-z').slider({value:0.0, min:-180.0, max:180.0, step:1, slide:function(){updateAngle('#slider-angle-z');}});
+
+$('#chkUpdateLight').button();
+$('#chkUpdateLight').click(toggleLight);
+
+function toggleLight(){
+    updateLightPosition = !updateLightPosition;
+}
+
+function updateAngle(selector){
+    var angle = $(selector).slider("value");
+    $(selector+'-value').html(angle);
+    
+    if(selector == '#slider-angle-x'){
+        rotation[0] = angle;
+    }
+    else if(selector == '#slider-angle-y'){
+        rotation[1] = angle;
+    }
+    else if (selector == '#slider-angle-z'){
+        rotation[2] = angle;
+    }
+    app.refresh();
+}
+
+function updatePosition(selector){
+    var pos = $(selector).slider("value");
+    $(selector+'-value').html(pos);
+    
+    if(selector == '#slider-position-x'){
+        position[0] = pos;
+    }
+    else if(selector == '#slider-position-y'){
+        position[1] = pos;
+    }
+    else if (selector == '#slider-position-z'){
+        position[2] = pos;
+    }
+    app.refresh();
+}
+
+function updateSliders(){
+    $('#slider-angle-x').slider("value",rotation[0]);
+    $('#slider-angle-y').slider("value",rotation[1]);
+    $('#slider-angle-z').slider("value",rotation[2]);
+    $('#slider-angle-x-value').html(rotation[0]);
+    $('#slider-angle-y-value').html(rotation[1]);
+    $('#slider-angle-z-value').html(rotation[2]);
+    $('#slider-position-x').slider("value",position[0]);
+    $('#slider-position-y').slider("value",position[1]);
+    $('#slider-position-z').slider("value",position[2]);
+    $('#slider-position-x-value').html(position[0]);
+    $('#slider-position-y-value').html(position[1]);
+    $('#slider-position-z-value').html(position[2]);     
+}
+
+$('#opt-coords').buttonset();
+
+$('#opt-world').click(
+    function(){
+        vec3.set(home,position);
+        rotation = [0,0,0];
+        updateSliders();
+        coords = COORDS_WORLD;
+        app.refresh();
+});
+
+$('#opt-camera').click(
+    function(){
+        vec3.set(home,position);
+        vec3.negate(position);
+        rotation = [0,0,0];        
+        updateSliders();
+        coords = COORDS_CAMERA;
+        app.refresh();
+});
+
+function displayMatrix(m){
+    var selector = '';
+    for(var i=0;i<16;i++){
+        selector = '#m'+i;
+        $(selector).html(m[i].toFixed(1));
+    }
+}
+
+
+</script>
+<script>cview.run(cview.MODE_VIEW);</script>
+</body>
+</html>
