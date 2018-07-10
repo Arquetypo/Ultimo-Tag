@@ -66,12 +66,38 @@ RecursoMalla.prototype.cargarFichero = function (nombre, gl, callback){
 
         request.send();
 
-        if (request.status == 200){
-        var object = new OBJ.Mesh(request.responseText);
-                    console.log("holaalalalalala");
-                    console.log(object);
+        if (request.status == 200){            
+            var object = new OBJ.Mesh(request.responseText);
+            // console.log(object);
+            cargarModelo(object, this, gl);
+            this.nombre = nombre;
+            callback();                   
     }
 
+        
+
+    }// FIN DEL ELSE
+}
+
+RecursoMalla.prototype.cargarFichero2 = function (nombre, gl){
+
+
+    var extension = (nombre.substring(nombre.lastIndexOf("."))).toLowerCase();
+
+
+
+        request = new XMLHttpRequest();
+
+        request.open("GET",nombre,false);
+
+        request.send();
+
+        if (request.status == 200){            
+            var object = new OBJ.Mesh(request.responseText);
+            // console.log(object);
+            cargarModelo(object, this, gl);
+            this.nombre = nombre;
+            // callback();                
         
 
     }// FIN DEL ELSE
@@ -83,7 +109,9 @@ RecursoMalla.prototype.draw = function (){
     /// CORRECTA LAS TEXTURAS, PERO NO FUNCIONABA SI NO ERA ASÍ
 
     if (this.texturas != null) {
-     this.archivoTextura = gl.createTexture();
+    if(this.archivoTextura==null){
+         this.archivoTextura = gl.createTexture();
+    }
 
      var image = document.getElementById("holi");
 
@@ -208,7 +236,7 @@ RecursoMalla.prototype.setTextura = function(nombre) {
         this.image = image;
     }
 
-    console.log(this.image);
+    // console.log(this.image);
     image.src = nombre;
 
 }
@@ -244,18 +272,18 @@ function cargarModelo(modelo, yo, gl){
 	yo.normales = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, yo.normales);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.normals), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.vertexNormals), gl.STATIC_DRAW);
     yo.normales.itemSize = 3;
-    yo.normales.numItems = modelo.normals.length / 3;
+    yo.normales.numItems = modelo.vertexNormals.length / 3;
 
-    if(modelo.uvs.length!=0){
+    if(modelo.textures.length!=0){
 
     yo.texturas = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, yo.texturas);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.uvs), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.textures), gl.STATIC_DRAW);
     yo.texturas.itemSize = 2;
-    yo.texturas.numItems = modelo.uvs.length / 2;
+    yo.texturas.numItems = modelo.textures.length / 2;
 
     }
 

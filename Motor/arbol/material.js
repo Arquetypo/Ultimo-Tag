@@ -35,6 +35,7 @@ Material.prototype.getShiness=function(){
 Material.prototype.cargarMat = function (){
 
 	var nombre = this.nombre;
+    console.log(nombre);
 
     var extension = (nombre.substring(nombre.lastIndexOf("."))).toLowerCase();
 
@@ -63,7 +64,7 @@ Material.prototype.cargarMat = function (){
 
         if (request.status == 200){
         var object = new OBJ.Mesh(request.responseText);
-                    console.log(object);
+                    // console.log(object);
     }
 
         

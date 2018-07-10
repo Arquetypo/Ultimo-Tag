@@ -23,10 +23,10 @@ Transformacion.prototype.transponer=function() {
 };
 
 Transformacion.prototype.invert=function() {
-	console.log("-----------------------------------");
-	console.log("-----------------------------------");
-	console.log("-----------------------------------");
-	console.log("------------------900909-----------------");
+	// console.log("-----------------------------------");
+	// console.log("-----------------------------------");
+	// console.log("-----------------------------------");
+	// console.log("------------------900909-----------------");
 	mat4.inverse(this.matriz);
 	mat4.inverse(this.cmatriz);
 };
@@ -37,8 +37,9 @@ Transformacion.prototype.trasladar=function(x,y,z) {
 	mat4.inverse(this.cmatriz);
 	if(z !=0){
 		this.hola=1;
-	console.log("------------------CREA TRANSALACION-----------------");
-	console.log(this.matriz);}
+	// console.log("------------------CREA TRANSALACION-----------------");
+	// console.log(this.matriz);
+}
 
 	
 };
@@ -49,8 +50,9 @@ Transformacion.prototype.rotar=function(angulo, x,y,z) {
 	mat4.inverse(this.cmatriz);
 	if(angulo !=0){
 		this.hola=2;
-	console.log("------------------CREA ROTACION-----------------");
-	console.log(this.matriz);}
+	// console.log("------------------CREA ROTACION-----------------");
+	// console.log(this.matriz);
+}
 
 
 };
@@ -63,7 +65,7 @@ Transformacion.prototype.escalar=function(x,y,z) {
 	mat4.scale(this.matriz, [x,y,z]);
 	mat4.scale(this.cmatriz, [x,y,z]);
 	mat4.inverse(this.cmatriz);
-	console.log("------------------------------------------ESCAAAAALAAAAAAA");
+	// console.log("------------------------------------------ESCAAAAALAAAAAAA");
 };
 
 Transformacion.prototype.beginDraw=function(){
@@ -99,27 +101,27 @@ Transformacion.prototype.beginDraw=function(){
 
 	if(this.hola==1){
 
-	console.log("------------PILAAA--------------");
-	console.log(pila[0]);
-	console.log(pila[1]);
-	console.log(Matriz);
+	// console.log("------------PILAAA--------------");
+	// console.log(pila[0]);
+	// console.log(pila[1]);
+	// console.log(Matriz);
 
-	console.log("------------------INTENTA DIBUJAR LA TRASLACION-----------------");
+	// console.log("------------------INTENTA DIBUJAR LA TRASLACION-----------------");
 
-	console.log(this.matriz);
+	// console.log(this.matriz);
 	//gl.uniformMatrix4fv(prg.uMVMatrix, false, Matriz);
 
 	}
 
 	if(this.hola==2){
 
-	console.log("------------PILAAA--------------");
-	console.log(pila[0]);
+	// console.log("------------PILAAA--------------");
+	// console.log(pila[0]);
 
 
 
-	console.log("------------------INTENTA DIBUJAR LA ROTACION-----------------");
-	console.log(this.matriz);
+	// console.log("------------------INTENTA DIBUJAR LA ROTACION-----------------");
+	// console.log(this.matriz);
 
 
 	}
