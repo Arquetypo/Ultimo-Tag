@@ -127,6 +127,7 @@ var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.
   var camEnt=motor.crearCamara();
 
   //camEnt.setAtributos(30, c_width / c_height , 0.1, 10000.0);
+
   camEnt.setAtributos(90, c_width / c_height, 0.1, 10000.0);
   //camEnt.setParalela();
   camEnt.setPerspectiva();
@@ -143,18 +144,7 @@ var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.
 
   Program.load();
 
-  camEnt.goHome([-2, -2, 0]);
-
-  var transforms = new SceneTransforms(camEnt);
-  transforms.init();
-  transforms.updatePerspective();
-  for (var i = 0; i < 5; i++){
-        transforms.calculateModelView();           
-        transforms.setMatrixUniforms();
-  }
-
-  
-
+  //camEnt.goHome([0,0,1]);
 
 
 
@@ -174,6 +164,7 @@ var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.
 
 
 
+
  
   var animacion1 = motor.crearAnimacion("mat-corazon.json");
   for(i=1; i<20; i++){
@@ -188,12 +179,6 @@ var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.
     }    
   }
 
-/*
-
-  var trasCubo= motor.crearTraslacion(-4.0,0.15,-7.0);
-  var rotaCubo= motor.crearRotacion(180,1,0,0);
-  var rotaCubo2= motor.crearRotacion(0,0,1,0);
-*/
   var trasCuboan1= motor.crearTraslacion(0.0,0.25,-9.0);
   var rotaCuboan1= motor.crearRotacion(0,1,0,0);
   var rotaCubo2an1= motor.crearRotacion(0,0,1,0);
@@ -441,7 +426,6 @@ var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.
   // // var rotaCubo2b= motor.crearRotacion(0,0,0,0);
   // // var cubo = motor.crearMalla("humana.obj","mat-avion.json");
 
-
   // motor.unirNodos(escena,trasCubob);
   // motor.unirNodos(trasCubob,rotaCubob);
   // motor.unirNodos(rotaCubob,rotaCubo2b);
@@ -470,12 +454,6 @@ var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.
   // motor.unirNodos(rotaCubo2d,animation4);
 
 
-
-
-  var trasCubo= motor.crearTraslacion(8.0,0.25,-7.0);
-  var rotaCubo= motor.crearRotacion(180,1,0,0);
-  var rotaCubo2= motor.crearRotacion(0,0,0,0);
-  var escalaCubo2= motor.crearEscalado(4,0,0);
 
 
 

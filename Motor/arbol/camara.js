@@ -2,10 +2,6 @@
 *   Camera
 */
 
-var CAMERA_ORBITING_TYPE = 1;
-var CAMERA_TRACKING_TYPE = 2;
-
-
 function Camara() {
     var t=1;
     this.esPerspectiva = true;
@@ -50,6 +46,7 @@ Camara.prototype.setParalela = function() {
 };
 
 Camara.prototype.getMatriz = function() {
+
     return this.matriz;
 };
 
@@ -84,24 +81,6 @@ Camara.prototype.endDraw = function() {
 
 };
 
-Camara.prototype.goHome = function(h){
-    if (h != null){
-        this.home = h;
-    }
-    
-    //this.setPosition([0,0,0]);
-   console.log("chechche"+ this.position);
-    
-    
-}
-
-
-Camara.prototype.setPosition = function(p){
-    vec3.set(p, this.position);
-    this.update();
-}
-
-
 Camara.prototype.setAzimuth = function(az){
     this.changeAzimuth(az - this.azimuth);
 }
@@ -133,37 +112,15 @@ Camara.prototype.changeElevation = function(el){
 
 Camara.prototype.update = function(){
     mat4.identity(this.matriz);
+    console.log("la matriz inicial es"+this.matriz);
     
-   
-    
-    if (this.type == CAMERA_TRACKING_TYPE){
-        console.log('this.type == CAMERA_TRACKING_TYPE')
-        mat4.translate(this.matriz, this.position);
-        mat4.rotateY(this.matriz, this.azimuth * Math.PI/180);
-        mat4.rotateX(this.matriz, this.elevation * Math.PI/180);
-    }
-    else {
-        console.log('NO this.type == CAMERA_TRACKING_TYPE')
-        var trxLook = mat4.create();
-        this.position = [0,0,0];
-        mat4.rotateY(this.matriz, this.azimuth * Math.PI/180);
-        mat4.rotateX(this.matriz, this.elevation * Math.PI/180);
-        mat4.translate(this.matriz,this.position);
-        console.log("loco, loco"+this.position);
-    }
 
-  
-  
-    if(this.type == CAMERA_TRACKING_TYPE){
-        mat4.multiplyVec4(this.matriz, [0, 0, 0, 1], this.position);
-    }
-    
-    if(this.hookRenderer){
-        this.hookRenderer();
-    }
-    if(this.hookGUIUpdate){
-        this.hookGUIUpdate();
-    }
+        console.log('NO this.type == CAMERA_TRACKING_TYPE')
+        mat4.rotateY(this.matriz,(this.azimuth * Math.PI/180));
+        mat4.rotateX(this.matriz,(this.elevation * Math.PI/180));
+        console.log("la matriz"+this.matriz+"la azimuth"+this.azimuth+"la elevation"+this.elevation);
+        gl.uniformMatrix4fv(prg.uMVMatrix, false, this.mvMatrix);
+        this.mvMatrix = this.getViewTransform();
     
 }
 

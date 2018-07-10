@@ -3,24 +3,24 @@
 
 function RecursoMalla(){
 
-	this.vertices = null;
-	this.normales = null;
-	this.texturas = null;
-	this.indices = null;
+    this.vertices = null;
+    this.normales = null;
+    this.texturas = null;
+    this.indices = null;
     this.squareVertexBuffer = null; 
     this.squareIndexBuffer = null; 
-	this.modeloCargado = false;
-	this.nombre = null;
+    this.modeloCargado = false;
+    this.nombre = null;
     this.archivoTextura = null;
     this.image = null;
 }
 
 RecursoMalla.prototype.GetNombre = function(){
-	return this.nombre;
+    return this.nombre;
 }
 
 RecursoMalla.prototype.SetNombre = function (nombre){
-	 this.nombre = nombre;
+     this.nombre = nombre;
 }
 
 // Leemos el fichero de disco pero no con assimp.
@@ -32,12 +32,12 @@ RecursoMalla.prototype.cargarFichero = function (nombre, gl, callback){
 
     if(extension == ".json"){ // COMIENZO DE SI ES JSON
 
-	request = new XMLHttpRequest();
+    request = new XMLHttpRequest();
 
-	request.open("GET",nombre,false);
+    request.open("GET",nombre,false);
 
 
-	/*request.onreadystatechange = function() {
+    /*request.onreadystatechange = function() {
         if (request.readyState == 4) {
             cargarModelo(JSON.parse(request.responseText), this, gl);
             
@@ -49,13 +49,13 @@ RecursoMalla.prototype.cargarFichero = function (nombre, gl, callback){
         }
     }*/
 
-	request.send();
+    request.send();
 
-	if (request.status == 200){
-		cargarModelo(JSON.parse(request.responseText), this, gl);
+    if (request.status == 200){
+        cargarModelo(JSON.parse(request.responseText), this, gl);
         this.nombre = nombre;
         callback();
-	}
+    }
 
     } // FIN DE SI ES JSON 
     else{ // SI ES UN ARCHIVO.OBJ
@@ -131,7 +131,7 @@ RecursoMalla.prototype.draw = function (){
     /// AQUI EMPIEZA EL CODIGO DE CARGADO EN BUFFERS
 
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, this.vertices);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertices);
     gl.vertexAttribPointer(prg.aVertexPosition, this.vertices.itemSize, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(prg.vertexPosition);
 
@@ -261,15 +261,15 @@ function cargarTextura(image, yo){
 
 function cargarModelo(modelo, yo, gl){
 
-	yo.vertices = gl.createBuffer();
+    yo.vertices = gl.createBuffer();
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, yo.vertices);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.vertices), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, yo.vertices);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.vertices), gl.STATIC_DRAW);
     yo.vertices.itemSize = 3;
     yo.vertices.numItems = modelo.vertices.length / 3;
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-	yo.normales = gl.createBuffer();
+    yo.normales = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, yo.normales);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelo.vertexNormals), gl.STATIC_DRAW);
@@ -302,7 +302,7 @@ function cargarModelo(modelo, yo, gl){
 
 
 
-	
+    
 
 
 }
