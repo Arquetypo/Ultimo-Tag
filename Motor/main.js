@@ -3,6 +3,8 @@
 var app=null;
 
   // Funcion inicio al iniciar la página
+var motor=null;
+var escena= null;
 
 function Inicio(){
 
@@ -12,11 +14,13 @@ function Inicio(){
 
   // Creamos el motor
 
-  var motor= new Motor();
+  motor= new Motor();
 
   //-------------------- ARBOL --------------------//
 
-  var escena= motor.crearEscena();
+  escena= motor.crearEscena();
+
+  console.log("ESA BUENA ESCENAAAAAAAAAAAAA:"+ escena);
 
   //----------- LUCES -----------//
   // El motor funciona con varias luces simultáneas //
@@ -113,18 +117,21 @@ function Inicio(){
 
   //----------- CAMARA -----------//
 
-  var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.5 //3- 2.0 //4-  6  // 5 10 // todo esto con canvas width="600" height="300"
-  var rotaCam= motor.crearRotacion(0,0,0,);
+var traslaCam= motor.crearTraslacion(0.0,0.0,0.0); // es -6 // 1- -5.5 // 2- -2.5 //3- 2.0 //4-  6  // 5 10 // todo esto con canvas width="600" height="300"
+  var rotaCam= motor.crearRotacion(0,0,0,0);
+
 
   motor.unirNodos(escena,traslaCam);
   motor.unirNodos(traslaCam,rotaCam);
 
   var camEnt=motor.crearCamara();
-  camEnt.setAtributos(30, c_width / c_height, 0.1, 10000.0);
+  camEnt.setAtributos(30, c_width / c_height , 0.1, 10000.0);
   //camEnt.setParalela();
   camEnt.setPerspectiva();
   motor.addCamara(camEnt);
   var camara=motor.crearNodo(rotaCam,camEnt);
+  var interactor = new CameraInteractor(camEnt, document.getElementById("canvas-element-id"));
+ 
 
   // Iniciamos las luces
 
@@ -133,6 +140,21 @@ function Inicio(){
   // Iniciamos el programa
 
   Program.load();
+
+  camEnt.goHome([-2, -2, 0]);
+
+  var transforms = new SceneTransforms(camEnt);
+  transforms.init();
+  transforms.updatePerspective();
+  for (var i = 0; i < 5; i++){
+        transforms.calculateModelView();           
+        transforms.setMatrixUniforms();
+  }
+
+  
+
+
+
 
   //----------- OBJETOS -----------//
 
@@ -158,6 +180,8 @@ function Inicio(){
   motor.unirNodos(trasCubo,rotaCubo);
   motor.unirNodos(rotaCubo,rotaCubo2);
   motor.unirNodos(rotaCubo2,cubo);
+
+
 
   var trasCubo= motor.crearTraslacion(-4.0,0.15,-7.0);
   var rotaCubo= motor.crearRotacion(180,1,0,0);
@@ -198,6 +222,7 @@ function Inicio(){
   var trasCubo= motor.crearTraslacion(8.0,0.25,-7.0);
   var rotaCubo= motor.crearRotacion(180,1,0,0);
   var rotaCubo2= motor.crearRotacion(0,0,0,0);
+  var escalaCubo2= motor.crearEscalado(4,0,0);
 
   var cubo = motor.crearMalla("estrella-buenodeltodo.json","mat-estrella.json");
 
@@ -240,6 +265,11 @@ function Inicio(){
   //----------------------------//
 
 }
+
+
+
+
+
 
 
 

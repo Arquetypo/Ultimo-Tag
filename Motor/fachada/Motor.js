@@ -6,11 +6,11 @@ function Motor(){
 }
 
 Motor.prototype.crearNodo=function(padre, entidad) {
-	nodo = padre.addHijo();
-	if(entidad != null){
-		nodo.setEntidad(entidad);
-	}
-	return nodo; 
+    nodo = padre.addHijo();
+    if(entidad != null){
+        nodo.setEntidad(entidad);
+    }
+    return nodo; 
 };
 
 Motor.prototype.crearTransform=function(){
@@ -52,11 +52,11 @@ Motor.prototype.crearMalla=function(name, material){
     var model=this.gestorRecursos.getRecurso(name,gl);
     var mat=new Material(material);
     mat.cargarMat();
-	var nodo = new Nodo();
-	var malla = new Malla(); 
-	malla.cargarMalla(model, mat);
-	nodo.setEntidad(malla);
-	return nodo;
+    var nodo = new Nodo();
+    var malla = new Malla(); 
+    malla.cargarMalla(model, mat);
+    nodo.setEntidad(malla);
+    return nodo;
 };
 
 Motor.prototype.crearAnimacion=function(name){
@@ -177,4 +177,3 @@ Motor.prototype.draw=function(){
 
     
 };
-

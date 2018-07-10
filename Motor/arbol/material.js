@@ -87,10 +87,6 @@ function cargarMaterial(modelo,yo,gl){
         yo.specular.push(modelo.specular[i]);
     };
 
-
-
-
-
 }
 
 Material.prototype.draw = function (){

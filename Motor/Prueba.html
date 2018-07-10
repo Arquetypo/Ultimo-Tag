@@ -12,6 +12,8 @@
        <script type='text/javascript' src="RecursoMalla.js"></script>
        <script type='text/javascript' src="RecursoTextura.js"></script>
        <script type='text/javascript' src='arbol/Camara.js'></script>
+       <script type='text/javascript' src='arbol/CameraInteractor.js'></script>
+       <script type='text/javascript' src='arbol/SceneTransform.js'></script>
        <script type='text/javascript' src='arbol/Entidad.js'></script>
        <script type='text/javascript' src='arbol/Luz.js'></script>
        <script type='text/javascript' src='arbol/Malla.js'></script>
@@ -22,13 +24,9 @@
        <script type='text/javascript' src='js/webgl/Utils.js'></script>
        <script type='text/javascript' src='js/webgl/Program.js'></script>
        <script type='text/javascript' src='js/webgl/WebGLApp.js'></script>
-       <script type='text/javascript' src='cargaObj.js'></script>
        <script type='text/javascript' src='fachada/Motor.js'></script>
 
       <script id="shader-vs" type="x-shader/x-vertex">
-
-
-
 
 
         // Constante de numero de luces
@@ -86,6 +84,8 @@
         vVertexTexture = aVertexTexture;
 
         }
+
+
 
       </script>
 
@@ -295,18 +295,23 @@
 
    
     }
-      
+
+
+
+
+
+       
     </script>
-
-
 
 
     </head>
     <body onload="Inicio();">
     <!-- <canvas style="border: none !important;" id="canvas-element-id" width="650" height="400"> -->
-    <canvas style="border:none;" id="canvas-element-id" width="1050" height="200">
+    <canvas style="border:none; margin: 0 auto; width: 100%;" id="canvas-element-id" width="1050" height="200">
     Your browser does not support HTML5
     </canvas>
     <img style="display:none;" id="holi" src="textura.jpg"/>
+   
+
     </body>
     </html>

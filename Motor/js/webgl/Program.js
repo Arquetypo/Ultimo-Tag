@@ -214,7 +214,6 @@ var Program = {
 
 
      /*prg.aTextureCoord     = gl.getAttribLocation(prg, "aTextureCoord");
-
      prg.uPMatrix         = gl.getUniformLocation(prg, "uPMatrix");
      prg.uMVMatrix        = gl.getUniformLocation(prg, "uMVMatrix");
      prg.uNMatrix         = gl.getUniformLocation(prg, "uNMatrix");
