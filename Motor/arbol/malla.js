@@ -13,10 +13,10 @@ Malla.prototype.getMalla=function(){
 };
 
 Malla.prototype.beginDraw=function(){
-	console.log("////////////////");
-	console.log("BEGIN DRAW MALLA");
-	console.log("////////////////");
-	console.log("hahhhhhhhhh"+ this.material.getNombre());
+	// console.log("////////////////");
+	// console.log("BEGIN DRAW MALLA");
+	// console.log("////////////////");
+	// console.log("hahhhhhhhhh"+ this.material.getNombre());
 	this.material.draw();
 	this.malla.draw();
 };

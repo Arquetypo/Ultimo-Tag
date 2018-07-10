@@ -59,12 +59,17 @@ Motor.prototype.crearMalla=function(name, material){
     return nodo;
 };
 
-Motor.prototype.crearAnimacion=function(name){
-    var model=this.gestorRecursos.getRecurso(name,gl);
+Motor.prototype.crearAnimacion=function(material){
+    var mat=new Material(material);
+    mat.cargarMat();
+    // console.log('$$$$$$$$$$$$$$$$$$$$$$$$ ENTRO EN CREAR ANIMACION AMIGAS');
+    // var model=this.gestorRecursos.getRecurso(name,gl);
+    // console.log(model);
     var nodo = new Nodo();
-    var anim = new Animacion(); 
+    var anim = new Animacion(mat); 
     
     nodo.setEntidad(anim);
+    // console.log('$$$$$$$$$$$$$$$$$$$$$$$$ SALGO DE CREAR ANIMACION AMIGAS');
     return nodo;
 };
 
@@ -172,8 +177,12 @@ Motor.prototype.draw=function(){
 
     //--inicializar camara
     //-----------------------
-
-    this.escena.draw();
-
-    
+    var aux=this.escena;
+    var self = this;
+    this.drawSceneHook  = function(){
+        aux.draw();
+        // self.initViewMatrix();
+    }
+    WEBGLAPP_RENDER = this.drawSceneHook;
+    renderLoop(); 
 };

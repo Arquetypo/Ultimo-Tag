@@ -19,7 +19,11 @@ Animacion.prototype.getNombre = function(){
 };
 
 Animacion.prototype.draw = function() {
-	//console.log('Dibujo el frame actual modulo frames')
+	console.log(this.frame_actual);
+	console.log(this.frames);
+	console.log('Dibujo el frame actual modulo frames '+this.frame_actual%this.frames);
+	console.log('holi');
+	console.log(this.mallas[this.frame_actual%this.frames]);
 	this.mallas[this.frame_actual%this.frames].draw();
 	this.frame_actual++;
 };

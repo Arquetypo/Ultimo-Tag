@@ -8,6 +8,17 @@ GestorRecursos.prototype.getRecurso = function(nombre, gl) {
     recurso = null;
     recursos = this.recursos;
 
+    // console.log('Get recu  '+nombre);
+
+
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log(nombre);
+
     for (i = 0; i < this.recursos.length; i++) {
 
         if (recursos[i] != null) {
@@ -28,6 +39,12 @@ GestorRecursos.prototype.getRecurso = function(nombre, gl) {
             });
         }
     }
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');
+    // console.log('LLAMANDO A GET RECURSO');    
  
 
     return recurso;

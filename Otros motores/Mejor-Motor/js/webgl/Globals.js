@@ -27,4 +27,4 @@ var updateLightPosition2 = false;
 
 var WEBGLAPP_RENDER = undefined;
 var WEBGLAPP_TIMER_ID = -1;
-var WEBGLAPP_RENDER_RATE = 500;
+var WEBGLAPP_RENDER_RATE = 100;
